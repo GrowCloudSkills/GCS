@@ -5,7 +5,7 @@ pubDate: 2024-12-18
 author: 'Vaibhav Chavan'
 category: 'Trainings'
 tags: ['HCM Data Loader', 'Data Migration', 'Oracle Fusion', 'Integration', 'ETL']
-image: <img src="/images/Posts/002DataLoader/002-data-loader.jpg" alt="Data Loader Overview" />
+image: ![Data Loader Overview](/images/Posts/002DataLoader/002-data-loader.jpg)
 readTime: 24
 draft: false
 ---
@@ -23,7 +23,7 @@ HCM Data Loader is a web-based application that:
 - Provides detailed error reporting
 - Supports bulk operations and scheduled loads
 
-![Data Loader Overview](https://raw.githubusercontent.com/GrowCloudSkills/GCS/main/public/images/Posts/002DataLoader/002-data-loader.jpg)
+![Data Loader Overview](/images/Posts/002DataLoader/002-data-loader.jpg)
 
   ## Architecture Overview
 
