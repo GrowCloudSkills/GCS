@@ -1,7 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Search from '../components/Search.astro';
 
 const allPosts = (await getCollection('posts', ({ data }) => !data.draft))
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
@@ -214,7 +213,11 @@ const author = {
         
         <!-- SEARCH -->
         <div class="sidebar-box">
-         <Search />
+          <h3>Search</h3>
+          <form class="search-form">
+            <input type="text" placeholder="Search articles..." name="q">
+            <button type="submit">🔍</button>
+          </form>
         </div>
 
         <!-- LATEST POSTS -->
