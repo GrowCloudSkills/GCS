@@ -10,7 +10,7 @@ readTime: 24
 draft: false
 ---
 
-# HCM Data Loader: Best Practices for Efficient Data Migration
+# HCM Data Loader: Best Practices for Efficient Data Migration -- this is a test post- 
 
 The HCM Data Loader is a critical tool for migrating legacy data into Oracle Fusion HCM. Proper implementation ensures data integrity, reduces errors, and accelerates your go-live timeline.
 
