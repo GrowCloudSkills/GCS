@@ -10,13 +10,8 @@ const technicalPosts = allPosts
 // Get all unique tags from technical posts
 const allTags = [...new Set(technicalPosts.flatMap(post => post.data.tags || []))];
 
-// 🎯 NEW: Get the selected tag from URL query parameter
-const selectedTag = new URL(Astro.request.url).searchParams.get('tag');
-
-// 🎯 NEW: Filter posts based on selected tag
-const filteredPosts = selectedTag
-	? technicalPosts.filter(post => post.data.tags?.includes(selectedTag))
-	: technicalPosts;
+// 🎯 IMPORTANT: We render ALL posts, then JavaScript filters them client-side
+// This works on static GitHub Pages where there's no server request object
 ---
 
 <BaseLayout title="Technical Articles" description="In-depth technical guides for Oracle Fusion HCM">
@@ -27,13 +22,11 @@ const filteredPosts = selectedTag
 				Deep-dive technical guides, architecture patterns, BIP and OTBI, SQL queries, and implementation details 
 				for Oracle Fusion HCM professionals.
 			</p>
-			<!-- 🎯 NEW: Show active filter tag -->
-			{selectedTag && (
-				<div class="active-filter">
-					<p>Showing posts tagged with <strong>"{selectedTag}"</strong></p>
-					<a href="/technical" class="clear-filter">← Clear filter</a>
-				</div>
-			)}
+			<!-- 🎯 NEW: Active filter indicator (hidden by default, shown by JS) -->
+			<div id="activeFilterIndicator" class="active-filter" style="display: none;">
+				<p>Showing posts tagged with <strong id="activeTagName"></strong></p>
+				<a href="/technical" class="clear-filter">← Clear filter</a>
+			</div>
 		</div>
 
 		<div class="content-area">
@@ -41,9 +34,9 @@ const filteredPosts = selectedTag
 			<aside class="sidebar">
 				<div class="filter-box">
 					<h3>Filter by Topic</h3>
-					<ul class="filter-list">
+					<ul class="filter-list" id="filterList">
 						<li>
-							<a href="/technical" class={`filter-link ${!selectedTag ? 'active' : ''}`}>
+							<a href="/technical" class="filter-link active" data-filter="all">
 								All ({technicalPosts.length})
 							</a>
 						</li>
@@ -51,12 +44,13 @@ const filteredPosts = selectedTag
 							const postsWithTag = technicalPosts.filter(post => 
 								post.data.tags?.includes(tag)
 							);
-							const isActive = selectedTag === tag;
 							return (
 								<li>
 									<a 
-										href={`/technical?tag=${tag}`} 
-										class={`filter-link ${isActive ? 'active' : ''}`}
+										href="#" 
+										class="filter-link"
+										data-filter={tag}
+										onClick="return false;"
 									>
 										{tag} ({postsWithTag.length})
 									</a>
@@ -69,9 +63,9 @@ const filteredPosts = selectedTag
 
 			<!-- Posts List -->
 			<main class="posts-main">
-				<div class="posts-grid">
-					{filteredPosts.map(post => (
-						<article class="post-card">
+				<div class="posts-grid" id="postsGrid">
+					{technicalPosts.map(post => (
+						<article class="post-card" data-tags={JSON.stringify(post.data.tags || [])}>
 							<div class="post-header">
 								<span class="category-badge">Technical</span>
 								<span class="date">{new Date(post.data.pubDate).toLocaleDateString()}</span>
@@ -85,7 +79,7 @@ const filteredPosts = selectedTag
 							
 							<div class="post-tags">
 								{post.data.tags?.map(tag => (
-									<a href={`/technical?tag=${tag}`} class="tag-link">
+									<a href="#" class="tag-link" data-tag={tag} onClick="return false;">
 										<span class="tag">{tag}</span>
 									</a>
 								))}
@@ -98,16 +92,133 @@ const filteredPosts = selectedTag
 					))}
 				</div>
 
-				{filteredPosts.length === 0 && (
-					<div class="empty-state">
-						<p>No articles found with tag "<strong>{selectedTag}</strong>"</p>
-						<a href="/technical" class="empty-state-link">View all technical articles</a>
-					</div>
-				)}
+				<div id="emptyState" class="empty-state" style="display: none;">
+					<p>No articles found with tag "<strong id="emptyTag"></strong>"</p>
+					<a href="/technical" class="empty-state-link">View all technical articles</a>
+				</div>
 			</main>
 		</div>
 	</div>
 </BaseLayout>
+
+<!-- 🎯 NEW: CLIENT-SIDE FILTERING SCRIPT -->
+<script>
+	// Get URL parameters
+	function getUrlParams() {
+		const params = new URLSearchParams(window.location.search);
+		return params.get('tag');
+	}
+
+	// Get all posts and filter elements
+	const postsGrid = document.getElementById('postsGrid');
+	const postCards = document.querySelectorAll('.post-card');
+	const filterLinks = document.querySelectorAll('.filter-link');
+	const emptyState = document.getElementById('emptyState');
+	const activeFilterIndicator = document.getElementById('activeFilterIndicator');
+	const tagLinks = document.querySelectorAll('.tag-link');
+
+	// Function to filter posts
+	function filterPosts(selectedTag) {
+		let visibleCount = 0;
+
+		postCards.forEach(card => {
+			if (selectedTag === 'all' || selectedTag === null) {
+				// Show all posts
+				card.style.display = 'block';
+				visibleCount++;
+			} else {
+				// Get tags from data attribute
+				const tagsStr = card.getAttribute('data-tags');
+				const tags = JSON.parse(tagsStr);
+				
+				// Check if this post has the selected tag
+				if (tags.includes(selectedTag)) {
+					card.style.display = 'block';
+					visibleCount++;
+				} else {
+					card.style.display = 'none';
+				}
+			}
+		});
+
+		// Update filter links active state
+		filterLinks.forEach(link => {
+			const linkFilter = link.getAttribute('data-filter');
+			if (linkFilter === selectedTag || (selectedTag === null && linkFilter === 'all')) {
+				link.classList.add('active');
+			} else {
+				link.classList.remove('active');
+			}
+		});
+
+		// Show/hide active filter indicator
+		if (selectedTag && selectedTag !== 'all') {
+			activeFilterIndicator.style.display = 'block';
+			document.getElementById('activeTagName').textContent = `"${selectedTag}"`;
+		} else {
+			activeFilterIndicator.style.display = 'none';
+		}
+
+		// Show/hide empty state
+		if (visibleCount === 0) {
+			emptyState.style.display = 'block';
+			document.getElementById('emptyTag').textContent = selectedTag;
+			postsGrid.style.display = 'none';
+		} else {
+			emptyState.style.display = 'none';
+			postsGrid.style.display = 'grid';
+		}
+	}
+
+	// Add click handlers to filter links
+	filterLinks.forEach(link => {
+		link.addEventListener('click', (e) => {
+			e.preventDefault();
+			const filter = link.getAttribute('data-filter');
+			
+			// Update URL
+			if (filter === 'all') {
+				window.history.pushState({}, '', '/technical');
+			} else {
+				window.history.pushState({}, '', `/technical?tag=${encodeURIComponent(filter)}`);
+			}
+			
+			// Filter posts
+			filterPosts(filter);
+		});
+	});
+
+	// Add click handlers to tag links
+	tagLinks.forEach(link => {
+		link.addEventListener('click', (e) => {
+			e.preventDefault();
+			const tag = link.getAttribute('data-tag');
+			
+			// Update URL
+			window.history.pushState({}, '', `/technical?tag=${encodeURIComponent(tag)}`);
+			
+			// Filter posts
+			filterPosts(tag);
+			
+			// Scroll to posts
+			document.querySelector('.posts-main').scrollIntoView({ behavior: 'smooth' });
+		});
+	});
+
+	// On page load, check if there's a tag parameter and filter accordingly
+	document.addEventListener('DOMContentLoaded', () => {
+		const selectedTag = getUrlParams();
+		if (selectedTag) {
+			filterPosts(selectedTag);
+		}
+	});
+
+	// Also run on page load immediately (in case DOMContentLoaded already fired)
+	const selectedTag = getUrlParams();
+	if (selectedTag && document.readyState !== 'loading') {
+		filterPosts(selectedTag);
+	}
+</script>
 
 <style>
 	.container {
@@ -138,7 +249,7 @@ const filteredPosts = selectedTag
 		line-height: 1.6;
 	}
 
-	/* 🎯 NEW: Styles for active filter indicator */
+	/* 🎯 Active filter indicator */
 	.active-filter {
 		margin-top: 1.5rem;
 		padding: 1rem;
@@ -146,6 +257,18 @@ const filteredPosts = selectedTag
 		border: 1px solid rgba(6, 182, 212, 0.3);
 		border-radius: 8px;
 		text-align: center;
+		animation: slideDown 0.3s ease;
+	}
+
+	@keyframes slideDown {
+		from {
+			opacity: 0;
+			transform: translateY(-10px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
 	}
 
 	.active-filter p {
@@ -166,6 +289,7 @@ const filteredPosts = selectedTag
 		text-decoration: none;
 		font-weight: 600;
 		transition: all 0.2s;
+		cursor: pointer;
 	}
 
 	.clear-filter:hover {
@@ -219,6 +343,7 @@ const filteredPosts = selectedTag
 		padding: 6px 10px;
 		border-radius: 4px;
 		transition: all 0.15s;
+		cursor: pointer;
 	}
 
 	.filter-link:hover {
@@ -226,7 +351,6 @@ const filteredPosts = selectedTag
 		background: var(--primary-soft);
 	}
 
-	/* 🎯 NEW: Enhanced active state styling */
 	.filter-link.active {
 		color: var(--primary);
 		background: var(--primary-soft);
@@ -314,10 +438,10 @@ const filteredPosts = selectedTag
 		margin-bottom: 1rem;
 	}
 
-	/* 🎯 NEW: Make tags clickable with hover state */
 	.tag-link {
 		text-decoration: none;
 		transition: all 0.15s;
+		cursor: pointer;
 	}
 
 	.tag-link:hover .tag {
@@ -349,7 +473,6 @@ const filteredPosts = selectedTag
 		transform: translateX(4px);
 	}
 
-	/* 🎯 NEW: Enhanced empty state */
 	.empty-state {
 		text-align: center;
 		padding: 3rem;
@@ -372,6 +495,7 @@ const filteredPosts = selectedTag
 		font-size: 13px;
 		font-weight: 600;
 		transition: all 0.2s;
+		cursor: pointer;
 	}
 
 	.empty-state-link:hover {
