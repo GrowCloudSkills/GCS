@@ -9,6 +9,14 @@ const technicalPosts = allPosts
 
 // Get all unique tags from technical posts
 const allTags = [...new Set(technicalPosts.flatMap(post => post.data.tags || []))];
+
+// 🎯 NEW: Get the selected tag from URL query parameter
+const selectedTag = new URL(Astro.request.url).searchParams.get('tag');
+
+// 🎯 NEW: Filter posts based on selected tag
+const filteredPosts = selectedTag
+	? technicalPosts.filter(post => post.data.tags?.includes(selectedTag))
+	: technicalPosts;
 ---
 
 <BaseLayout title="Technical Articles" description="In-depth technical guides for Oracle Fusion HCM">
@@ -16,9 +24,16 @@ const allTags = [...new Set(technicalPosts.flatMap(post => post.data.tags || [])
 		<div class="section-header">
 			<h1>Technical Articles</h1>
 			<p class="section-description">
-				Deep-dive technical guides, architecture patterns, BIP and OTBI,  SQL queries, and implementation details 
+				Deep-dive technical guides, architecture patterns, BIP and OTBI, SQL queries, and implementation details 
 				for Oracle Fusion HCM professionals.
 			</p>
+			<!-- 🎯 NEW: Show active filter tag -->
+			{selectedTag && (
+				<div class="active-filter">
+					<p>Showing posts tagged with <strong>"{selectedTag}"</strong></p>
+					<a href="/technical" class="clear-filter">← Clear filter</a>
+				</div>
+			)}
 		</div>
 
 		<div class="content-area">
@@ -28,7 +43,7 @@ const allTags = [...new Set(technicalPosts.flatMap(post => post.data.tags || [])
 					<h3>Filter by Topic</h3>
 					<ul class="filter-list">
 						<li>
-							<a href="/technical" class="filter-link active">
+							<a href="/technical" class={`filter-link ${!selectedTag ? 'active' : ''}`}>
 								All ({technicalPosts.length})
 							</a>
 						</li>
@@ -36,9 +51,13 @@ const allTags = [...new Set(technicalPosts.flatMap(post => post.data.tags || [])
 							const postsWithTag = technicalPosts.filter(post => 
 								post.data.tags?.includes(tag)
 							);
+							const isActive = selectedTag === tag;
 							return (
 								<li>
-									<a href={`/technical?tag=${tag}`} class="filter-link">
+									<a 
+										href={`/technical?tag=${tag}`} 
+										class={`filter-link ${isActive ? 'active' : ''}`}
+									>
 										{tag} ({postsWithTag.length})
 									</a>
 								</li>
@@ -51,7 +70,7 @@ const allTags = [...new Set(technicalPosts.flatMap(post => post.data.tags || [])
 			<!-- Posts List -->
 			<main class="posts-main">
 				<div class="posts-grid">
-					{technicalPosts.map(post => (
+					{filteredPosts.map(post => (
 						<article class="post-card">
 							<div class="post-header">
 								<span class="category-badge">Technical</span>
@@ -66,7 +85,9 @@ const allTags = [...new Set(technicalPosts.flatMap(post => post.data.tags || [])
 							
 							<div class="post-tags">
 								{post.data.tags?.map(tag => (
-									<span class="tag">{tag}</span>
+									<a href={`/technical?tag=${tag}`} class="tag-link">
+										<span class="tag">{tag}</span>
+									</a>
 								))}
 							</div>
 							
@@ -77,9 +98,10 @@ const allTags = [...new Set(technicalPosts.flatMap(post => post.data.tags || [])
 					))}
 				</div>
 
-				{technicalPosts.length === 0 && (
+				{filteredPosts.length === 0 && (
 					<div class="empty-state">
-						<p>No technical articles found.</p>
+						<p>No articles found with tag "<strong>{selectedTag}</strong>"</p>
+						<a href="/technical" class="empty-state-link">View all technical articles</a>
 					</div>
 				)}
 			</main>
@@ -114,6 +136,40 @@ const allTags = [...new Set(technicalPosts.flatMap(post => post.data.tags || [])
 		max-width: 600px;
 		margin: 0 auto;
 		line-height: 1.6;
+	}
+
+	/* 🎯 NEW: Styles for active filter indicator */
+	.active-filter {
+		margin-top: 1.5rem;
+		padding: 1rem;
+		background: rgba(6, 182, 212, 0.08);
+		border: 1px solid rgba(6, 182, 212, 0.3);
+		border-radius: 8px;
+		text-align: center;
+	}
+
+	.active-filter p {
+		font-size: 13px;
+		color: var(--ink-muted);
+		margin: 0 0 0.5rem;
+	}
+
+	.active-filter strong {
+		color: var(--primary);
+		font-weight: 700;
+	}
+
+	.clear-filter {
+		display: inline-block;
+		font-size: 12px;
+		color: var(--primary);
+		text-decoration: none;
+		font-weight: 600;
+		transition: all 0.2s;
+	}
+
+	.clear-filter:hover {
+		transform: translateX(-3px);
 	}
 
 	.content-area {
@@ -165,10 +221,18 @@ const allTags = [...new Set(technicalPosts.flatMap(post => post.data.tags || [])
 		transition: all 0.15s;
 	}
 
-	.filter-link:hover,
+	.filter-link:hover {
+		color: var(--primary);
+		background: var(--primary-soft);
+	}
+
+	/* 🎯 NEW: Enhanced active state styling */
 	.filter-link.active {
 		color: var(--primary);
 		background: var(--primary-soft);
+		font-weight: 600;
+		border-left: 3px solid var(--primary);
+		padding-left: 7px;
 	}
 
 	.posts-main {
@@ -250,6 +314,17 @@ const allTags = [...new Set(technicalPosts.flatMap(post => post.data.tags || [])
 		margin-bottom: 1rem;
 	}
 
+	/* 🎯 NEW: Make tags clickable with hover state */
+	.tag-link {
+		text-decoration: none;
+		transition: all 0.15s;
+	}
+
+	.tag-link:hover .tag {
+		background: var(--primary);
+		color: white;
+	}
+
 	.tag {
 		font-size: 11px;
 		background: var(--primary-soft);
@@ -257,6 +332,8 @@ const allTags = [...new Set(technicalPosts.flatMap(post => post.data.tags || [])
 		padding: 3px 8px;
 		border-radius: 4px;
 		font-weight: 600;
+		transition: all 0.15s;
+		cursor: pointer;
 	}
 
 	.read-more {
@@ -272,10 +349,34 @@ const allTags = [...new Set(technicalPosts.flatMap(post => post.data.tags || [])
 		transform: translateX(4px);
 	}
 
+	/* 🎯 NEW: Enhanced empty state */
 	.empty-state {
 		text-align: center;
 		padding: 3rem;
 		color: var(--ink-muted);
+	}
+
+	.empty-state strong {
+		color: var(--primary);
+		font-weight: 700;
+	}
+
+	.empty-state-link {
+		display: inline-block;
+		margin-top: 1rem;
+		padding: 8px 16px;
+		background: var(--primary);
+		color: white;
+		text-decoration: none;
+		border-radius: 6px;
+		font-size: 13px;
+		font-weight: 600;
+		transition: all 0.2s;
+	}
+
+	.empty-state-link:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(0, 84, 179, 0.3);
 	}
 
 	@media (max-width: 768px) {
@@ -289,6 +390,10 @@ const allTags = [...new Set(technicalPosts.flatMap(post => post.data.tags || [])
 
 		.section-header h1 {
 			font-size: 1.8rem;
+		}
+
+		.filter-box {
+			display: none;
 		}
 	}
 </style>
