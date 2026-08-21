@@ -5,7 +5,7 @@ pubDate: 2024-12-18
 author: 'Vaibhav Chavan'
 category: 'Trainings'
 tags: ['HCM Data Loader', 'Data Migration', 'Oracle Fusion', 'Integration', 'ETL']
-image: 'images/Posts/002DataLoader/002-data-loader.jpg'
+image: '/images/Posts/002DataLoader/002-data-loader.jpg'
 readTime: 24
 draft: false
 ---
