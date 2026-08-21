@@ -23,7 +23,7 @@ HCM Data Loader is a web-based application that:
 - Provides detailed error reporting
 - Supports bulk operations and scheduled loads
 
- <img src="/images/Posts/002DataLoader/002-data-loader.jpg" alt="Data Loader Overview" />
+![Data Loader Overview](https://raw.githubusercontent.com/GrowCloudSkills/GCS/main/public/images/Posts/002DataLoader/002-data-loader.jpg)
 
   ## Architecture Overview
 
