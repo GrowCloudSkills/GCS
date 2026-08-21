@@ -2,7 +2,7 @@ import { defineConfig } from 'astro/config';
 import rehypeRaw from 'rehype-raw';
 
 export default defineConfig({
-  site: 'https://www.abhishekmohantyhcmcloud.com',
+  site: 'https://www.growcloudskills.com',
   markdown: {
     allowDangerousHtml: true,
     rehypePlugins: [rehypeRaw],
