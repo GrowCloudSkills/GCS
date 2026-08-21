@@ -3,7 +3,7 @@ title: 'HCM Data Loader: Best Practices for Efficient Data Migration'
 description: 'Complete guide to HCM Data Loader including configuration, validation, error handling, and best practices for successful data migration.'
 pubDate: 2024-12-18
 author: 'Vaibhav Chavan'
-category: 'Technical'
+category: 'Trainings'
 tags: ['HCM Data Loader', 'Data Migration', 'Oracle Fusion', 'Integration', 'ETL']
 image: '/images/posts/002-data-loader.jpg'
 readTime: 24
