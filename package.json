@@ -1,8 +1,8 @@
 {
-  "name": "abhishekmohantyhcmcloud",
+  "name": "GrowCloudSkills",
   "type": "module",
   "version": "1.0.0",
-  "description": "Oracle HCM Cloud blog by Abhishek Mohanty — Fast Formulas, Absence Management, Time and Labor, Redwood, OTBI",
+  "description": "Oracle HCM Cloud blog by Vaibhav Chavan",
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
