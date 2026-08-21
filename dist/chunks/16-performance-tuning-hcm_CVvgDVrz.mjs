@@ -1,0 +1,28 @@
+import { c as createComponent, m as maybeRenderHead, u as unescapeHTML, a as renderTemplate } from './astro/server_DNlr-Cer.mjs';
+import 'kleur/colors';
+import 'clsx';
+
+const html = "<p>Performance optimization is essential for ensuring Oracle Fusion HCM systems run efficiently, especially at scale.</p>\n<h2 id=\"performance-analysis\">Performance Analysis</h2>\n<p>Monitor system performance through metrics collection, bottleneck identification, and performance trend analysis.</p>\n<h2 id=\"database-optimization\">Database Optimization</h2>\n<p>Optimize database performance through proper indexing, query optimization, statistics maintenance, and partition strategies.</p>\n<h2 id=\"indexing-strategies\">Indexing Strategies</h2>\n<p>Create indexes on frequently filtered columns while avoiding over-indexing that impacts write performance.</p>\n<h2 id=\"query-optimization\">Query Optimization</h2>\n<p>Optimize queries through proper joins, early filtering, aggregate functions, and execution plan analysis.</p>\n<h2 id=\"application-configuration\">Application Configuration</h2>\n<p>Configure application parameters for optimal performance including cache settings, batch sizes, and concurrent user limits.</p>\n<h2 id=\"payroll-processing-optimization\">Payroll Processing Optimization</h2>\n<p>Optimize payroll runs through proper batch sizing, process sequencing, and parallel execution capabilities.</p>\n<h2 id=\"report-performance\">Report Performance</h2>\n<p>Improve report execution through better queries, proper indexing, scheduled off-peak execution, and caching strategies.</p>\n<h2 id=\"monitoring-tools\">Monitoring Tools</h2>\n<p>Use monitoring tools to track performance metrics, identify issues, and plan capacity requirements.</p>\n<h2 id=\"capacity-planning\">Capacity Planning</h2>\n<p>Plan capacity based on growth projections, user count increases, and data volume expansion.</p>\n<h2 id=\"best-practices\">Best Practices</h2>\n<ol>\n<li>Monitor performance regularly</li>\n<li>Establish performance baselines</li>\n<li>Optimize before scaling</li>\n<li>Test improvements before production</li>\n<li>Document optimization changes</li>\n</ol>\n<h2 id=\"conclusion\">Conclusion</h2>\n<p>Systematic performance optimization ensures Oracle Fusion HCM remains responsive and efficient.</p>";
+
+				const frontmatter = {"title":"Performance Tuning: Optimizing Oracle Fusion HCM","description":"Strategies and techniques for optimizing performance in Oracle Fusion HCM implementations","pubDate":"2026-08-08T00:00:00.000Z","category":"Technical","tags":["Performance","Tuning","Technical","Optimization"],"readTime":13};
+				const file = "/workspaces/GCS/src/content/posts/16-performance-tuning-hcm.md";
+				const url = undefined;
+				function rawContent() {
+					return "\nPerformance optimization is essential for ensuring Oracle Fusion HCM systems run efficiently, especially at scale.\n\n## Performance Analysis\n\nMonitor system performance through metrics collection, bottleneck identification, and performance trend analysis.\n\n## Database Optimization\n\nOptimize database performance through proper indexing, query optimization, statistics maintenance, and partition strategies.\n\n## Indexing Strategies\n\nCreate indexes on frequently filtered columns while avoiding over-indexing that impacts write performance.\n\n## Query Optimization\n\nOptimize queries through proper joins, early filtering, aggregate functions, and execution plan analysis.\n\n## Application Configuration\n\nConfigure application parameters for optimal performance including cache settings, batch sizes, and concurrent user limits.\n\n## Payroll Processing Optimization\n\nOptimize payroll runs through proper batch sizing, process sequencing, and parallel execution capabilities.\n\n## Report Performance\n\nImprove report execution through better queries, proper indexing, scheduled off-peak execution, and caching strategies.\n\n## Monitoring Tools\n\nUse monitoring tools to track performance metrics, identify issues, and plan capacity requirements.\n\n## Capacity Planning\n\nPlan capacity based on growth projections, user count increases, and data volume expansion.\n\n## Best Practices\n\n1. Monitor performance regularly\n2. Establish performance baselines\n3. Optimize before scaling\n4. Test improvements before production\n5. Document optimization changes\n\n## Conclusion\n\nSystematic performance optimization ensures Oracle Fusion HCM remains responsive and efficient.\n";
+				}
+				function compiledContent() {
+					return html;
+				}
+				function getHeadings() {
+					return [{"depth":2,"slug":"performance-analysis","text":"Performance Analysis"},{"depth":2,"slug":"database-optimization","text":"Database Optimization"},{"depth":2,"slug":"indexing-strategies","text":"Indexing Strategies"},{"depth":2,"slug":"query-optimization","text":"Query Optimization"},{"depth":2,"slug":"application-configuration","text":"Application Configuration"},{"depth":2,"slug":"payroll-processing-optimization","text":"Payroll Processing Optimization"},{"depth":2,"slug":"report-performance","text":"Report Performance"},{"depth":2,"slug":"monitoring-tools","text":"Monitoring Tools"},{"depth":2,"slug":"capacity-planning","text":"Capacity Planning"},{"depth":2,"slug":"best-practices","text":"Best Practices"},{"depth":2,"slug":"conclusion","text":"Conclusion"}];
+				}
+
+				const Content = createComponent((result, _props, slots) => {
+					const { layout, ...content } = frontmatter;
+					content.file = file;
+					content.url = url;
+
+					return renderTemplate`${maybeRenderHead()}${unescapeHTML(html)}`;
+				});
+
+export { Content, compiledContent, Content as default, file, frontmatter, getHeadings, rawContent, url };
