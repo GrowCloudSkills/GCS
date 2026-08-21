@@ -9,16 +9,24 @@ const functionalPosts = allPosts
 
 // Get all unique tags from functional posts
 const allTags = [...new Set(functionalPosts.flatMap(post => post.data.tags || []))];
+
+// 🎯 IMPORTANT: We render ALL posts, then JavaScript filters them client-side
+// This works on static GitHub Pages where there's no server request object
 ---
 
-<BaseLayout title="Functional Articles" description="Configuration guides for Oracle Fusion HCM">
+<BaseLayout title="Functional Articles" description="Configuration and setup guides for Oracle Fusion HCM">
 	<div class="container">
 		<div class="section-header">
 			<h1>Functional Articles</h1>
 			<p class="section-description">
-				Configuration guides, implementation approaches, and best practices for 
-				Core HR, Payroll, Time & Labor, Absnece Mgmt, Benefits and more...
+				Configuration guides, setup best practices, and functional expertise across Core HR, Payroll, 
+				Time & Labor, Absence Management, Benefits, and Compensation modules.
 			</p>
+			<!-- 🎯 NEW: Active filter indicator (hidden by default, shown by JS) -->
+			<div id="activeFilterIndicator" class="active-filter" style="display: none;">
+				<p>Showing posts tagged with <strong id="activeTagName"></strong></p>
+				<a href="/functional" class="clear-filter">← Clear filter</a>
+			</div>
 		</div>
 
 		<div class="content-area">
@@ -26,9 +34,9 @@ const allTags = [...new Set(functionalPosts.flatMap(post => post.data.tags || []
 			<aside class="sidebar">
 				<div class="filter-box">
 					<h3>Filter by Topic</h3>
-					<ul class="filter-list">
+					<ul class="filter-list" id="filterList">
 						<li>
-							<a href="/functional" class="filter-link active">
+							<a href="/functional" class="filter-link active" data-filter="all">
 								All ({functionalPosts.length})
 							</a>
 						</li>
@@ -38,7 +46,12 @@ const allTags = [...new Set(functionalPosts.flatMap(post => post.data.tags || []
 							);
 							return (
 								<li>
-									<a href={`/functional?tag=${tag}`} class="filter-link">
+									<a 
+										href="#" 
+										class="filter-link"
+										data-filter={tag}
+										onClick="return false;"
+									>
 										{tag} ({postsWithTag.length})
 									</a>
 								</li>
@@ -50,9 +63,9 @@ const allTags = [...new Set(functionalPosts.flatMap(post => post.data.tags || []
 
 			<!-- Posts List -->
 			<main class="posts-main">
-				<div class="posts-grid">
+				<div class="posts-grid" id="postsGrid">
 					{functionalPosts.map(post => (
-						<article class="post-card">
+						<article class="post-card" data-tags={JSON.stringify(post.data.tags || [])}>
 							<div class="post-header">
 								<span class="category-badge">Functional</span>
 								<span class="date">{new Date(post.data.pubDate).toLocaleDateString()}</span>
@@ -66,7 +79,9 @@ const allTags = [...new Set(functionalPosts.flatMap(post => post.data.tags || []
 							
 							<div class="post-tags">
 								{post.data.tags?.map(tag => (
-									<span class="tag">{tag}</span>
+									<a href="#" class="tag-link" data-tag={tag} onClick="return false;">
+										<span class="tag">{tag}</span>
+									</a>
 								))}
 							</div>
 							
@@ -77,15 +92,133 @@ const allTags = [...new Set(functionalPosts.flatMap(post => post.data.tags || []
 					))}
 				</div>
 
-				{functionalPosts.length === 0 && (
-					<div class="empty-state">
-						<p>No functional articles found.</p>
-					</div>
-				)}
+				<div id="emptyState" class="empty-state" style="display: none;">
+					<p>No articles found with tag "<strong id="emptyTag"></strong>"</p>
+					<a href="/functional" class="empty-state-link">View all functional articles</a>
+				</div>
 			</main>
 		</div>
 	</div>
 </BaseLayout>
+
+<!-- 🎯 NEW: CLIENT-SIDE FILTERING SCRIPT -->
+<script>
+	// Get URL parameters
+	function getUrlParams() {
+		const params = new URLSearchParams(window.location.search);
+		return params.get('tag');
+	}
+
+	// Get all posts and filter elements
+	const postsGrid = document.getElementById('postsGrid');
+	const postCards = document.querySelectorAll('.post-card');
+	const filterLinks = document.querySelectorAll('.filter-link');
+	const emptyState = document.getElementById('emptyState');
+	const activeFilterIndicator = document.getElementById('activeFilterIndicator');
+	const tagLinks = document.querySelectorAll('.tag-link');
+
+	// Function to filter posts
+	function filterPosts(selectedTag) {
+		let visibleCount = 0;
+
+		postCards.forEach(card => {
+			if (selectedTag === 'all' || selectedTag === null) {
+				// Show all posts
+				card.style.display = 'block';
+				visibleCount++;
+			} else {
+				// Get tags from data attribute
+				const tagsStr = card.getAttribute('data-tags');
+				const tags = JSON.parse(tagsStr);
+				
+				// Check if this post has the selected tag
+				if (tags.includes(selectedTag)) {
+					card.style.display = 'block';
+					visibleCount++;
+				} else {
+					card.style.display = 'none';
+				}
+			}
+		});
+
+		// Update filter links active state
+		filterLinks.forEach(link => {
+			const linkFilter = link.getAttribute('data-filter');
+			if (linkFilter === selectedTag || (selectedTag === null && linkFilter === 'all')) {
+				link.classList.add('active');
+			} else {
+				link.classList.remove('active');
+			}
+		});
+
+		// Show/hide active filter indicator
+		if (selectedTag && selectedTag !== 'all') {
+			activeFilterIndicator.style.display = 'block';
+			document.getElementById('activeTagName').textContent = `"${selectedTag}"`;
+		} else {
+			activeFilterIndicator.style.display = 'none';
+		}
+
+		// Show/hide empty state
+		if (visibleCount === 0) {
+			emptyState.style.display = 'block';
+			document.getElementById('emptyTag').textContent = selectedTag;
+			postsGrid.style.display = 'none';
+		} else {
+			emptyState.style.display = 'none';
+			postsGrid.style.display = 'grid';
+		}
+	}
+
+	// Add click handlers to filter links
+	filterLinks.forEach(link => {
+		link.addEventListener('click', (e) => {
+			e.preventDefault();
+			const filter = link.getAttribute('data-filter');
+			
+			// Update URL
+			if (filter === 'all') {
+				window.history.pushState({}, '', '/functional');
+			} else {
+				window.history.pushState({}, '', `/functional?tag=${encodeURIComponent(filter)}`);
+			}
+			
+			// Filter posts
+			filterPosts(filter);
+		});
+	});
+
+	// Add click handlers to tag links
+	tagLinks.forEach(link => {
+		link.addEventListener('click', (e) => {
+			e.preventDefault();
+			const tag = link.getAttribute('data-tag');
+			
+			// Update URL
+			window.history.pushState({}, '', `/functional?tag=${encodeURIComponent(tag)}`);
+			
+			// Filter posts
+			filterPosts(tag);
+			
+			// Scroll to posts
+			document.querySelector('.posts-main').scrollIntoView({ behavior: 'smooth' });
+		});
+	});
+
+	// On page load, check if there's a tag parameter and filter accordingly
+	document.addEventListener('DOMContentLoaded', () => {
+		const selectedTag = getUrlParams();
+		if (selectedTag) {
+			filterPosts(selectedTag);
+		}
+	});
+
+	// Also run on page load immediately (in case DOMContentLoaded already fired)
+	const selectedTag = getUrlParams();
+	if (selectedTag && document.readyState !== 'loading') {
+		filterPosts(selectedTag);
+	}
+</script>
 
 <style>
 	.container {
@@ -116,6 +249,53 @@ const allTags = [...new Set(functionalPosts.flatMap(post => post.data.tags || []
 		line-height: 1.6;
 	}
 
+	/* 🎯 Active filter indicator */
+	.active-filter {
+		margin-top: 1.5rem;
+		padding: 1rem;
+		background: rgba(6, 182, 212, 0.08);
+		border: 1px solid rgba(6, 182, 212, 0.3);
+		border-radius: 8px;
+		text-align: center;
+		animation: slideDown 0.3s ease;
+	}
+
+	@keyframes slideDown {
+		from {
+			opacity: 0;
+			transform: translateY(-10px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	.active-filter p {
+		font-size: 13px;
+		color: var(--ink-muted);
+		margin: 0 0 0.5rem;
+	}
+
+	.active-filter strong {
+		color: var(--primary);
+		font-weight: 700;
+	}
+
+	.clear-filter {
+		display: inline-block;
+		font-size: 12px;
+		color: var(--primary);
+		text-decoration: none;
+		font-weight: 600;
+		transition: all 0.2s;
+		cursor: pointer;
+	}
+
+	.clear-filter:hover {
+		transform: translateX(-3px);
+	}
+
 	.content-area {
 		display: grid;
 		grid-template-columns: 220px 1fr;
@@ -141,7 +321,7 @@ const allTags = [...new Set(functionalPosts.flatMap(post => post.data.tags || []
 		font-weight: 700;
 		text-transform: uppercase;
 		letter-spacing: 0.08em;
-		color: var(--accent);
+		color: var(--primary);
 		margin: 0 0 1rem;
 	}
 
@@ -163,12 +343,20 @@ const allTags = [...new Set(functionalPosts.flatMap(post => post.data.tags || []
 		padding: 6px 10px;
 		border-radius: 4px;
 		transition: all 0.15s;
+		cursor: pointer;
 	}
 
-	.filter-link:hover,
+	.filter-link:hover {
+		color: var(--primary);
+		background: var(--primary-soft);
+	}
+
 	.filter-link.active {
-		color: var(--accent);
-		background: var(--accent-soft);
+		color: var(--primary);
+		background: var(--primary-soft);
+		font-weight: 600;
+		border-left: 3px solid var(--primary);
+		padding-left: 7px;
 	}
 
 	.posts-main {
@@ -190,8 +378,8 @@ const allTags = [...new Set(functionalPosts.flatMap(post => post.data.tags || []
 	}
 
 	.post-card:hover {
-		border-color: var(--accent);
-		box-shadow: 0 8px 30px rgba(0, 152, 163, 0.1);
+		border-color: var(--primary);
+		box-shadow: 0 8px 30px rgba(0, 84, 179, 0.1);
 		transform: translateY(-2px);
 	}
 
@@ -203,8 +391,8 @@ const allTags = [...new Set(functionalPosts.flatMap(post => post.data.tags || []
 	}
 
 	.category-badge {
-		background: var(--accent-soft);
-		color: var(--accent-dark);
+		background: var(--primary-soft);
+		color: var(--primary-dark);
 		font-size: 11px;
 		font-weight: 700;
 		text-transform: uppercase;
@@ -233,7 +421,7 @@ const allTags = [...new Set(functionalPosts.flatMap(post => post.data.tags || []
 	}
 
 	.post-card h2 a:hover {
-		color: var(--accent);
+		color: var(--primary);
 	}
 
 	.post-description {
@@ -250,18 +438,31 @@ const allTags = [...new Set(functionalPosts.flatMap(post => post.data.tags || []
 		margin-bottom: 1rem;
 	}
 
+	.tag-link {
+		text-decoration: none;
+		transition: all 0.15s;
+		cursor: pointer;
+	}
+
+	.tag-link:hover .tag {
+		background: var(--primary);
+		color: white;
+	}
+
 	.tag {
 		font-size: 11px;
-		background: var(--accent-soft);
-		color: var(--accent);
+		background: var(--primary-soft);
+		color: var(--primary);
 		padding: 3px 8px;
 		border-radius: 4px;
 		font-weight: 600;
+		transition: all 0.15s;
+		cursor: pointer;
 	}
 
 	.read-more {
 		display: inline-block;
-		color: var(--accent);
+		color: var(--primary);
 		text-decoration: none;
 		font-weight: 500;
 		font-size: 13px;
@@ -278,6 +479,30 @@ const allTags = [...new Set(functionalPosts.flatMap(post => post.data.tags || []
 		color: var(--ink-muted);
 	}
 
+	.empty-state strong {
+		color: var(--primary);
+		font-weight: 700;
+	}
+
+	.empty-state-link {
+		display: inline-block;
+		margin-top: 1rem;
+		padding: 8px 16px;
+		background: var(--primary);
+		color: white;
+		text-decoration: none;
+		border-radius: 6px;
+		font-size: 13px;
+		font-weight: 600;
+		transition: all 0.2s;
+		cursor: pointer;
+	}
+
+	.empty-state-link:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(0, 84, 179, 0.3);
+	}
+
 	@media (max-width: 768px) {
 		.content-area {
 			grid-template-columns: 1fr;
@@ -289,6 +514,10 @@ const allTags = [...new Set(functionalPosts.flatMap(post => post.data.tags || []
 
 		.section-header h1 {
 			font-size: 1.8rem;
+		}
+
+		.filter-box {
+			display: none;
 		}
 	}
 </style>
